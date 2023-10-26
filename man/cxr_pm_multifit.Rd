@@ -11,7 +11,7 @@ cxr_pm_multifit(
   covariates = NULL,
   optimization_method = c("BFGS", "CG", "Nelder-Mead", "ucminf", "L-BFGS-B", "nlm",
     "nlminb", "Rcgmin", "Rvmmin", "spg", "bobyqa", "nmkb", "hjkb", "nloptr_CRS2_LM",
-    "nloptr_ISRES", "nloptr_DIRECT_L_RAND", "DEoptimR", "hydroPSO", "GenSA"),
+    "nloptr_ISRES", "nloptr_DIRECT_L_RAND", "DEoptimR", "GenSA"),
   alpha_form = c("none", "global", "pairwise"),
   lambda_cov_form = c("none", "global"),
   alpha_cov_form = c("none", "global", "pairwise"),
@@ -96,17 +96,20 @@ data <- neigh_list[1:3]
 for(i in 1:length(data)){
   data[[i]] <- data[[i]][,2:length(data[[i]])]
 }
+# be explicit about the focal species
+focal.sp <- names(data)
 # covariates: salinity
 data("salinity_list")
 salinity <- salinity_list[1:3]
 # keep only salinity column
 for(i in 1:length(salinity)){
-  salinity[[i]] <- salinity[[i]][,2:length(salinity[[i]])]
+  salinity[[i]] <- data.frame(salinity = salinity[[i]][,2:length(salinity[[i]])])
 }
 \donttest{
   fit_3sp <- cxr_pm_multifit(data = data,
                              optimization_method = "bobyqa",
                              model_family = "BH",
+                             focal_column = focal.sp,
                              covariates = salinity,
                              alpha_form = "pairwise",
                              lambda_cov_form = "global",
@@ -130,6 +133,6 @@ for(i in 1:length(salinity)){
   # brief summary
   summary(fit_3sp)
   # interaction matrix
-  fit_3sp$alpha
+  fit_3sp$alpha_matrix
 }
 }

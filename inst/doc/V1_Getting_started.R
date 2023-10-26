@@ -15,17 +15,20 @@ obs_homa <- subset(obs_homa,select = -c(obs_ID))
 # and the number of neighbours per species (in columns).
 head(obs_homa)
 
+#There are a couple of outliers, eliminate from analyses
+obs_homa<-subset(obs_homa, fitness<500)
+
 ## -----------------------------------------------------------------------------
 #?cxr_pm_fit #check the help file for a description of the arguments
 fit_homa <- cxr_pm_fit(data = obs_homa,
                        focal_column = my.sp,
-                       model_family = "RK",
+                       model_family = "BH",
                        covariates = NULL,
                        optimization_method = "Nelder-Mead",
                        alpha_form = "pairwise",
                        lambda_cov_form = "none",
                        alpha_cov_form = "none",
-                       initial_values = list(lambda = 1,
+                       initial_values = list(lambda = 45,
                                              alpha_intra = .1,
                                              alpha_inter = .1),
                        #not aplicable to this optimazation method
@@ -53,6 +56,12 @@ fit_homa$lambda
 fit_homa$alpha_intra
 # interspecific interactions
 fit_homa$alpha_inter
+
+## -----------------------------------------------------------------------------
+require(ggplot2)
+ggplot(obs_homa, aes(HOMA , fitness)) + 
+  geom_point() +
+  stat_function(fun = function(x) fit_homa$lambda/(1+fit_homa$alpha_intra*x), lwd = 1.5, colour = "blue")
 
 ## -----------------------------------------------------------------------------
 my.sp <- c("BEMA","CETE","LEMA")
@@ -84,42 +93,58 @@ head(salinity[[1]])
 nrow(salinity[[1]])
 
 ## -----------------------------------------------------------------------------
-fit_3sp <- cxr_pm_multifit(data = obs_3sp,
+
+fit_3sp <- list()
+all_sp <- names(obs_3sp)
+
+for (i in 1:length(obs_3sp)){
+  obs <- obs_3sp[i]
+  my.sp <- all_sp[i]
+  salinity.sp <- salinity[i]
+  lambda <- mean(obs[[1]]$fitness)
+  upper_lambda <- as.numeric(max(obs[[1]]$fitness))
+
+
+fit <- cxr_pm_multifit(data = obs,
                            focal_column = my.sp,
-                           model_family = "RK",
+                           model_family = "BH",
                            # here we use a bounded method for demonstration purposes
                            optimization_method = "bobyqa", 
-                           covariates = salinity,
+                           covariates = salinity.sp,
                            alpha_form = "pairwise",
                            lambda_cov_form = "global", # effect of covariates over lambda
                            alpha_cov_form = "global", # effect of covariates over alpha
-                           initial_values = list(lambda = 1,
-                                                 alpha_intra = 0.1,
-                                                 alpha_inter = 0.1,
+                           initial_values = list(lambda = lambda,
+                                                 alpha_intra = 1,
+                                                 alpha_inter = 1,
                                                  lambda_cov = 0.1,
                                                  alpha_cov = 0.1),
                            lower_bounds = list(lambda = 0,
-                                               alpha_intra = 0,
+                                               alpha_intra = -1,
                                                alpha_inter = -1,
-                                               lambda_cov = 0,
-                                               alpha_cov = 0),
-                           upper_bounds = list(lambda = 100,
-                                               alpha_intra = 1,
-                                               alpha_inter = 1,
-                                               lambda_cov = 1,
-                                               alpha_cov = 1),
+                                               lambda_cov = -2,
+                                               alpha_cov = -2),
+                           upper_bounds = list(lambda = upper_lambda,
+                                               alpha_intra = 3,
+                                               alpha_inter = 3,
+                                               lambda_cov = 2,
+                                               alpha_cov = 2),
                            # no standard errors
                            bootstrap_samples = 0)
 
-## -----------------------------------------------------------------------------
-summary(fit_3sp)
+fit_3sp[[i]] <- fit
+}
+names(fit_3sp) <- all_sp
 
 ## -----------------------------------------------------------------------------
-fit_3sp$log_likelihood
+fit_3sp$BEMA
 
 ## -----------------------------------------------------------------------------
-fit_3sp$lambda_cov
-fit_3sp$alpha_cov
+fit_3sp$BEMA$log_likelihood
+
+## -----------------------------------------------------------------------------
+fit_3sp$BEMA$lambda_cov
+fit_3sp$BEMA$alpha_cov
 
 ## -----------------------------------------------------------------------------
 lower_bounds = list(lambda = 0,

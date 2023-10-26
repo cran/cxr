@@ -10,12 +10,12 @@ cxr_er_fit(
   covariates = NULL,
   optimization_method = c("Nelder-Mead", "BFGS", "CG", "ucminf", "L-BFGS-B", "nlm",
     "nlminb", "Rcgmin", "Rvmmin", "spg", "bobyqa", "nmkb", "hjkb", "nloptr_CRS2_LM",
-    "nloptr_ISRES", "nloptr_DIRECT_L_RAND", "DEoptimR", "hydroPSO", "GenSA"),
+    "nloptr_ISRES", "nloptr_DIRECT_L_RAND", "DEoptimR", "GenSA"),
   lambda_cov_form = c("none", "global"),
   effect_cov_form = c("none", "global"),
   response_cov_form = c("none", "global"),
-  initial_values = list(lambda = 1, effect = 1, response = 1, lambda_cov = 0,
-    effect_cov = 0, response_cov = 0),
+  initial_values = list(lambda = 1, effect = 1, response = 1, lambda_cov = 0, effect_cov
+    = 0, response_cov = 0),
   lower_bounds = NULL,
   upper_bounds = NULL,
   fixed_terms = NULL,
@@ -93,6 +93,7 @@ an object of class 'cxr_er_fit' which is a list with the following components:
 }
 \description{
 Estimates parameters of user-specified models of competitive effects and responses.
+NOTE: including covariates on competitive effects is still under development, in this version it is suggested not to use that feature.
 }
 \examples{
 \donttest{
